@@ -1,129 +1,177 @@
 # PlanFlow
 
-A pixel-art planning buddy that lives in your browser, watches you procrastinate, and gently calls you out.
+> Tarayıcıda yaşayan, davranışını izleyen ve ertelediğinde nazikçe seni uyaran pikselart bir kişisel planlama asistanı.
 
-**Hackathon problem:** Problem 3 — Sürekli Ertelenen Görevler (recurring procrastination).
+**Hackathon:** PlanFlow AI Challenge — İSTÜN AI Stüdyo Kulübü
+**Seçilen Problem:** Problem 3 — Sürekli Ertelenen Görevler
 
-PlanFlow tracks your browser activity locally, lets you manage a weekly calendar with natural language (powered by Gemini 2.5 Flash), and when you scheduled "write the report" but you've been on YouTube for three minutes — a tiny pixel buddy drops in from the top of the page and reminds you, with a single button to get back to work.
+---
 
-## What's in here
+## ✨ Özellikler
 
-- **Side panel** with a chunky pink-pixel avatar and a chat box. Ask "what did I do today?" and it answers using your real, locally tracked behavior.
-- **Dashboard** with a hand-rolled weekly calendar grid, AI-driven natural language input ("paste my class schedule" or "tonight 8 to 10 pm write report"), a 7×24 distraction heatmap, and a weekly AI insight card.
-- **Procrastination intervention**: a `chrome.alarms`-driven check ticks every minute. If you have an active task and you've been on a known distraction domain for 3+ minutes, it generates a short AI nudge, then drops a Shadow-DOM pop on the page (click-through everywhere except the avatar/buttons).
+PlanFlow, tarayıcının içinde yaşayan ve sekiz çekirdek özellikten oluşan bir Chrome extension'dır:
 
-Everything lives client-side in `chrome.storage.local`. No accounts, no server, no telemetry.
+- 🐡 **Side Panel Avatar** — Yandaki panelde idle/talking animasyonu olan pikselart bir avatar
+- 👀 **Lokal Davranış Takibi** — Aktif sekme, geçirilen süre ve saat dilimleri tamamen cihazda kaydedilir
+- 🎯 **Click-through Overlay Müdahale** — Distraction sitelerinde avatar ekrana iner, tıklamayı engellemeden konuşur
+- 📅 **Haftalık Takvim** — El yazımı CSS Grid, 7 sütun, drag-friendly
+- 🗣️ **Doğal Dille Takvim Editleme** — "Her pazartesi 14:00-17:00 fizik lab" → AI olay olarak yerleştirir
+- 📋 **Toplu Ders Programı Yapıştırma** — Üniversite tablosu yapıştır, AI 14 etkinliği tek seferde yerleştirir
+- 💬 **Bağlamsal Sohbet** — Side panel chat, davranış verisini gören AI ile
+- ⏰ **Erteleme Tespiti** — Görev saatinde distraction sitesindeysen avatar müdahale eder
+- 📊 **Haftalık Davranış Raporu** — AI yorumlu heatmap, "salı sabah üretkensin, perşembe öğleden sonra dağılıyorsun"
 
-## Stack
+---
 
-- [WXT](https://wxt.dev/) (Vite + auto-manifest, MV3, Chromium only)
-- React 19 + TypeScript (strict)
-- Tailwind CSS 3
-- Zustand
-- `@google/genai` SDK → `gemini-2.5-flash`
+## 🏗️ Teknoloji Yığını
 
-## Install + run
+| Katman | Tercih |
+|--------|--------|
+| Extension framework | WXT (Vite tabanlı) |
+| Dil | TypeScript (strict) |
+| UI | React 18 + Tailwind CSS 3 |
+| State | Zustand + `chrome.storage.local` |
+| AI | Gemini 2.5 Flash via `@google/genai` |
+| Takvim | El yazımı CSS Grid |
+
+---
+
+## 🚀 Kurulum
+
+### Gereksinimler
+
+- Node.js ≥ 18
+- Google AI Studio API anahtarı (ücretsiz tier yeterli) — https://aistudio.google.com/apikey adresinden alabilirsin
+
+### Adımlar
 
 ```bash
+# 1. Repo'yu klonla
+git clone <repo-url>
+cd planflow
+
+# 2. Bağımlılıkları yükle
 npm install
+
+# 3. Ortam değişkenlerini ayarla
 cp .env.example .env
-# add your Gemini API key:
-#   WXT_GEMINI_API_KEY=...
-npm run build
+# .env dosyasını aç ve API anahtarını yapıştır:
+# WXT_GEMINI_API_KEY=your_key_here
 ```
 
-Then in Chrome:
+---
 
-1. Open `chrome://extensions`.
-2. Toggle **Developer mode**.
-3. **Load unpacked** → select `.output/chrome-mv3/`.
-4. Pin the toolbar icon. Clicking it opens the side panel.
+## 🛠️ Çalıştırma
 
-### Dev (hot reload)
+### Geliştirme modu (hot reload)
 
 ```bash
 npm run dev
 ```
 
-WXT prints an unpacked dir to load (`.output/chrome-mv3-dev/`) and reloads on save.
+WXT otomatik olarak Chrome'u açar ve extension'ı yükler. Kod değişiklikleri canlı yansır.
 
-### Regenerate placeholder avatar frames
+### Production build
 
 ```bash
-node scripts/generate-placeholder-avatar.mjs
+npm run build
 ```
 
-Drops 4 PNGs into `public/avatar/`. Replace these files with real art whenever you have it — no code change needed.
+Çıktı: `.output/chrome-mv3/` klasöründe unpacked extension.
 
-## Demo scenarios
+### Chrome'a manuel yükleme
 
-Film in this order:
+1. `chrome://extensions` adresine git
+2. Sağ üstte **Geliştirici modu**'nu aç
+3. **Paketlenmemiş öğe yükle** butonuna tıkla
+4. `.output/chrome-mv3/` klasörünü seç
+5. Araç çubuğundaki PlanFlow ikonuna tıkla → side panel açılır
+6. Side panel'daki dashboard linkine tıkla → tam ekran takvim açılır
 
-1. **Cold install** — `chrome://extensions` → load unpacked → click toolbar icon → side panel opens with the idle pink avatar.
-2. **Bulk paste** — open the dashboard, paste a 14-line university timetable into the AI input → grid fills with 14 colored blocks in ~3 seconds.
-3. **Single command** — type "tonight 8 to 10 pm write the report" → pink task block appears for tonight 20:00–22:00.
-4. **Behavior tracked** — quick montage of browsing (YouTube, GitHub, Twitter). Open dashboard → heatmap fills with today's activity.
-5. **Intervention** — with the report task active, open YouTube and wait. Avatar drops from top, says a generated line, two buttons: **ok, başlıyorum** and **5 dk daha**. Click the first → dashboard opens.
-6. **Chat** — side panel → "what did I do today?" → AI replies referencing real domains/durations.
-7. **Insight** — scroll the dashboard → AI insight card with a 2-3 sentence weekly observation.
+---
 
-For seeding demo data without browsing for an hour, click "load a demo week" on the empty dashboard — it preloads 14 events and 3 days of browsing logs.
+## 🔐 Ortam Değişkenleri
 
-To force-trigger an intervention from devtools (skip the 3-minute wait):
+| Değişken | Zorunlu | Açıklama |
+|----------|---------|----------|
+| `WXT_GEMINI_API_KEY` | ✅ | Google Gemini API anahtarı |
 
-```js
-chrome.tabs.query({active: true, currentWindow: true}, t =>
-  chrome.tabs.sendMessage(t[0].id, {
-    type: 'INTERVENE',
-    taskTitle: 'Write the report',
-    cueText: 'My lord — the report awaits.',
-    taskEndMinutes: 22 * 60,
-  })
-);
-```
+> **Not:** WXT için `WXT_` prefix'i zorunludur — bu sayede değer runtime'da `import.meta.env` üzerinden okunabilir.
 
-## Project layout
+---
+
+## 🎬 Demo Senaryoları
+
+5 dakikalık demo videosu bu sırayla çekildi:
+
+1. **Soğuk başlangıç** — Extension yüklenir, ikona tıklayınca side panel idle avatar ile açılır.
+2. **Toplu yapıştırma** — Dashboard'a 14 satırlık ders programı yapıştırılır → AI tek seferde tüm etkinlikleri takvime yerleştirir.
+3. **Tek komut** — "Akşam 8'den 10'a kadar rapor yaz" → pembe task block bu akşam 20:00-22:00'a düşer.
+4. **Davranış takibi** — Birkaç dakikalık tarama (YouTube, GitHub, Twitter) → dashboard'da ısı haritası dolar.
+5. **Müdahale (killer scene)** — Rapor görevi aktifken YouTube açılır, avatar tepeden iner, AI cümlesi söyler, "ok başlıyorum" tıklayınca dashboard görevi vurguyla açılır.
+6. **Sohbet** — Side panel'da "bugün ne yapıyorum?" sorusu → AI hem görevlere hem davranışa referans veren cevap verir.
+7. **Haftalık insight** — Dashboard'da AI yorumu kartı: "Bu hafta 8 saat YouTube, salı sabah üretken, perşembe öğleden sonra dağılıyorsun."
+
+---
+
+## 📁 Proje Yapısı
 
 ```
 planflow/
-├── wxt.config.ts             # WXT manifest + Vite config
-├── tailwind.config.ts
 ├── entrypoints/
-│   ├── background.ts         # SW: tracking, alarms, intervention dispatch, message routing
-│   ├── content.ts            # Shadow-DOM overlay (click-through)
-│   ├── sidepanel/            # avatar + chat
-│   └── dashboard/            # calendar + AI input + heatmap + insight
+│   ├── background.ts          # Service worker: davranış takibi, alarmlar, müdahale dispatch
+│   ├── content.ts             # Overlay enjeksiyonu (Shadow DOM + pointer-events)
+│   ├── sidepanel/             # Avatar + chat UI
+│   └── dashboard/             # Takvim + insight UI
 ├── src/
 │   ├── lib/
-│   │   ├── ai.ts             # Gemini client, tool schemas, prompts
-│   │   ├── storage.ts        # typed chrome.storage.local wrapper (single source of truth)
-│   │   ├── tracking.ts       # active tab + domain + session math
-│   │   ├── intervention.ts   # cooldown, distraction list, alarm handler
-│   │   ├── calendar.ts       # day index, time math, recurrence helpers
-│   │   ├── insights.ts       # weekly aggregation + heatmap data
-│   │   ├── messaging.ts      # typed runtime/tabs message helpers
-│   │   └── seed.ts           # demo data
-│   ├── components/           # Avatar, ChatBox, CalendarGrid, EventBlock, EventModal, Heatmap, InsightCard, Toast, …
-│   ├── state/                # Zustand stores: tasks, chat, behavior
-│   ├── constants.ts
-│   └── types.ts
-└── public/
-    └── avatar/               # 4 placeholder PNGs (idle-1, idle-2, talk-1, talk-2)
+│   │   ├── ai.ts              # Gemini client, function calling, system prompts
+│   │   ├── storage.ts         # Typed chrome.storage.local wrapper
+│   │   ├── tracking.ts        # Aktif sekme + süre matematiği
+│   │   ├── intervention.ts    # Cooldown, distraction list, trigger logic
+│   │   ├── calendar.ts        # Event tipleri, recurrence, "şimdi" lookup
+│   │   └── insights.ts        # Haftalık agregasyon + AI yorumu
+│   ├── components/            # Avatar, ChatBox, CalendarGrid, EventModal, Heatmap...
+│   ├── state/                 # Zustand stores (tasks, chat, behavior)
+│   └── types.ts               # Paylaşılan TS tipleri
+├── public/avatar/             # idle-1/2.png, talk-1/2.png
+└── wxt.config.ts              # Manifest config
 ```
 
-## Permissions
+---
 
-Declared in `wxt.config.ts`:
+## 🧩 Mimari Kararlar
 
-- `storage` — local data only.
-- `tabs` — read active tab URL for tracking and dispatching the overlay.
-- `alarms` — minute-tick procrastination check.
-- `idle` — pause tracking when the user steps away.
-- `sidePanel` — open the side panel from the toolbar action.
-- `host_permissions: <all_urls>` — needed for the content-script overlay to inject on any page.
+- **AI çağrıları tek noktadan.** Tüm Gemini çağrıları `src/lib/ai.ts`'de; React bileşenleri SDK'yi doğrudan çağırmaz. Provider değişimi tek dosyalık iş.
+- **Storage erişimleri tek noktadan.** Tüm `chrome.storage.local` erişimleri `src/lib/storage.ts`'den; tip güvenli get/set.
+- **Function calling.** AI takvimi doğrudan editler (addEvent / addEvents / deleteEvent / updateEvent); raw text parse etmek yerine yapılandırılmış araç çağrıları.
+- **Click-through overlay.** Shadow DOM + `pointer-events: none` kapsayıcı + avatar üzerinde `pointer-events: auto`. Host sayfanın CSS'i avatara, avatar host sayfaya dokunmaz.
+- **Lokal-first veri.** Davranış verisi cihazdan dışarı çıkmaz; AI'a sadece agregeyi gönderiyoruz (ham URL ve geçmiş değil).
 
-No remote requests except to `generativelanguage.googleapis.com` (Gemini).
+---
 
-## License
+## ⚠️ Bilinen Sınırlar
 
-For the hackathon — see `DECISIONS.md` for design notes.
+- Sadece Chromium tabanlı tarayıcılar (Chrome, Edge, Brave). Firefox/Safari yok.
+- Mobil yok (Chrome Android extension desteklemiyor).
+- Tarayıcı dışındaki uygulamalardaki süreler takip edilmez (VS Code, Spotify desktop vb. extension'a görünmez).
+- Distraction tespiti hardcoded liste tabanlı; AI ile bağlamsal tespit v2 roadmap'inde.
+
+---
+
+## 🗺️ Yol Haritası
+
+Sonraki geliştirme öncelikleri (öncelik sırasına göre):
+
+1. AI tabanlı bağlamsal distraction tespiti (kategori değil bağlam)
+2. Davranışsal pattern öğrenimi (aylık/mevsimlik)
+3. Obsidian / markdown not sistemleri ile iki yönlü sync
+4. Google Calendar iki yönlü senkronizasyon
+5. Mobil eşlik uygulaması (görev görüntüleme + bildirim)
+6. Yerel LLM seçeneği (Ollama)
+
+---
+
+## 📜 Lisans
+
+MIT
